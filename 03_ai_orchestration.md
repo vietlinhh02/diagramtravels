@@ -67,7 +67,9 @@ flowchart TD
 
 ## Task Routing Logic
 
-### Cheap LLM Tasks (Cost-Optimized)
+## Detailed Task Routing Strategy 
+
+### Cheap LLM Tasks (Cost-Optimized cho high-frequency, creative workflows)
 ```mermaid
 mindmap
   root((Cheap LLM))
@@ -88,7 +90,7 @@ mindmap
       Language detection
 ```
 
-### Structured LLM Tasks (Quality-Critical)
+### Structured LLM Tasks (Quality-Critical cho business-logic và validation)
 ```mermaid
 mindmap
   root((Structured LLM))
@@ -262,10 +264,9 @@ graph TB
     K --> LLM
 ```
 
-### Context Window Management
-- **Max Context**: 8K tokens cho cheap LLM, 32K cho structured LLM
-- **Priority Ranking**: User input > Trip context > POI data > General knowledge
-- **Truncation Strategy**: Keep most recent + most relevant context
+### Advanced Context Window Management & Optimization
+
+**TravelSense v2** sử dụng sophisticated context management để maximize hiệu quả của cả hai LLM tiers. **Context Window Allocation** được tối ưu với max 8K tokens cho cheap LLM (đủ cho creative tasks) và 32K tokens cho structured LLM (handle complex reasoning với nhiều constraints). **Dynamic Priority Ranking** áp dụng weighted scoring: User input (weight: 1.0), Current trip context (0.8), Relevant POI data (0.6), Historical patterns (0.4), và General knowledge (0.2). **Intelligent Truncation Strategy** giữ lại most recent user interactions, most relevant context from vector search, và core constraint data, đồng thời compress generic information thành summaries để tiết kiệm tokens mà vẫn preserve essential context.
 
 ## Quality Assurance
 

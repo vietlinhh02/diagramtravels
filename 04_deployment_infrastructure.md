@@ -238,7 +238,7 @@ graph TB
     monitoring -.-> ingress
 ```
 
-### Resource Allocation
+### Kubernetes Resource Management & Auto-scaling Strategy
 ```yaml
 # Kubernetes Resource Limits
 apiVersion: v1
@@ -350,7 +350,7 @@ jobs:
 
 ## Environment Configuration
 
-### Environment Separation
+### Multi-environment Strategy với Infrastructure as Code
 ```mermaid
 graph TB
     subgraph "Development"
@@ -396,7 +396,7 @@ graph TB
     monitoring -.-> prod-api
 ```
 
-### Configuration Management
+### Secure Configuration Management với Secret Rotation
 ```mermaid
 flowchart TD
     A[Environment Variables] --> B[Config Service]
@@ -564,8 +564,4 @@ timeline
 ```
 
 ### Multi-region Deployment
-- **Primary Region**: US-East (Virginia)
-- **Secondary Region**: EU-West (Ireland)
-- **Failover Time**: < 5 minutes (automated)
-- **Data Sync**: Real-time replication with 15-second lag
-- **Recovery Objectives**: RTO < 1 hour, RPO < 5 minutes
+**Multi-region deployment strategy** cho TravelSense v2 được thiết kế để đảm bảo high availability và optimal performance cho global users. **Primary Region** đặt tại US-East (Virginia) xử lý majority traffic và chứa master database, trong khi **Secondary Region** ở EU-West (Ireland) serve European users và act as disaster recovery site. **Automated failover** được trigger trong <5 minutes khi primary region unavailable, sử dụng health checks và DNS-based routing. **Real-time data synchronization** maintain 15-second lag through streaming replication cho critical data và eventual consistency cho non-critical data. **Recovery objectives** target RTO (Recovery Time Objective) <1 hour và RPO (Recovery Point Objective) <5 minutes để minimize business impact, với comprehensive backup testing và disaster recovery drills quarterly.

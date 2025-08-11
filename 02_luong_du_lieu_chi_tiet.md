@@ -75,7 +75,9 @@ flowchart TD
 
 ## Chi tiết từng giai đoạn
 
-### 1. Input Phase - Thu thập dữ liệu thông minh
+## Phân tích chi tiết từng giai đoạn xử lý dữ liệu
+
+### 1. Input Phase - Thu thập dữ liệu thông minh qua AI-driven questioning
 
 ```mermaid
 sequenceDiagram
@@ -104,12 +106,9 @@ sequenceDiagram
     end
 ```
 
-**Thông tin cơ bản thu thập:**
-- **Bắt buộc**: Origin, Destinations, Date range, Group size
-- **Tùy chọn thông minh**: Budget range, Travel style, Special needs
-- **Suy luận từ profile**: Past destinations, Preferred activities, Spending patterns
+**Giai đoạn Input Phase** được thiết kế theo triết lý minimalist nhưng intelligent, chỉ thu thập thông tin bắt buộc (origin, destinations, date range, group size) và sử dụng AI để suy luận các thông tin tùy chọn dựa trên user profile history. Hệ thống Missing Info Detector phân tích completeness score và sinh ra priority question list, cho phép người dùng bỏ qua các câu hỏi không quan trọng. Smart defaults được áp dụng dựa trên past preferences, geographic patterns và seasonal trends từ database của similar trips.
 
-### 2. Data Enrichment - Làm giàu dữ liệu
+### 2. Data Enrichment - Làm giàu dữ liệu thông qua multi-source integration
 
 ```mermaid
 graph LR
@@ -142,13 +141,9 @@ graph LR
     LLM1 --> LLM2 --> LLM3
 ```
 
-**Dữ liệu được làm giàu:**
-- **POI Data**: Tên, tọa độ, giờ mở cửa, giá vé, reviews
-- **Weather Context**: Thời tiết dự báo, mùa vụ, điều kiện đặc biệt
-- **Accommodation Options**: Khách sạn/homestay theo budget và vị trí
-- **Activity Suggestions**: Dựa trên profile và POI similarity
+**Data Enrichment phase** tích hợp đồng thời multiple external APIs và vector search để tạo comprehensive context. Vector Search sử dụng user preferences embeddings để tìm similar trips và relevant POIs từ database lịch sử. External APIs được gọi parallel để fetch POI details (Foursquare), weather forecasts (OpenWeatherMap), distance matrix (MapBox), và accommodation options (Booking.com/Agoda). LLM Processing nhận input từ tất cả sources này để analyze user persona, generate personalized activity ideas và suggest hidden gems based on local knowledge và user preferences patterns.
 
-### 3. Draft Generation - Tạo nháp lịch trình
+### 3. Draft Generation - Tạo nháp lịch trình với constraint-aware optimization
 
 ```mermaid
 flowchart TD
