@@ -11,9 +11,9 @@ flowchart TD
     end
 
     subgraph "Data Enrichment"
-        D[External APIs<br/>Places, Weather, Accommodation]
+        D[External APIs<br/>Places, Weather, Accommodation, Restaurants]
         E[Vector Search<br/>Similar trips, POI recommendations]
-        F[LLM Ideation<br/>Activity suggestions based on profile]
+        F[LLM Ideation<br/>Activity & dining suggestions based on profile]
     end
 
     subgraph "Draft Generation"
@@ -123,6 +123,7 @@ graph LR
         API2[Weather API<br/>Forecast, climate]
         API3[Maps API<br/>Distance matrix]
         API4[Accommodation<br/>Availability, pricing]
+        API5[Restaurant APIs<br/>Dining options, menus, reviews]
     end
 
     subgraph "LLM Processing"
@@ -136,12 +137,13 @@ graph LR
     API2 --> LLM1
     API3 --> LLM2
     API4 --> LLM3
+    API5 --> LLM2
 
     VS3 --> LLM1
     LLM1 --> LLM2 --> LLM3
 ```
 
-**Data Enrichment phase** tích hợp đồng thời multiple external APIs và vector search để tạo comprehensive context. Vector Search sử dụng user preferences embeddings để tìm similar trips và relevant POIs từ database lịch sử. External APIs được gọi parallel để fetch POI details (Foursquare), weather forecasts (OpenWeatherMap), distance matrix (MapBox), và accommodation options (Booking.com/Agoda). LLM Processing nhận input từ tất cả sources này để analyze user persona, generate personalized activity ideas và suggest hidden gems based on local knowledge và user preferences patterns.
+**Data Enrichment phase** tích hợp đồng thời multiple external APIs và vector search để tạo comprehensive context. Vector Search sử dụng user preferences embeddings để tìm similar trips và relevant POIs từ database lịch sử. External APIs được gọi parallel để fetch POI details (Foursquare), weather forecasts (OpenWeatherMap), distance matrix (MapBox), accommodation options (Booking.com/Agoda), và restaurant data (Zomato/Yelp) với menu information và local dining preferences. LLM Processing nhận input từ tất cả sources này để analyze user persona, generate personalized activity & dining ideas, và suggest hidden culinary gems based on local food culture và user dietary preferences.
 
 ### 3. Draft Generation - Tạo nháp lịch trình với constraint-aware optimization
 
@@ -334,8 +336,72 @@ erDiagram
     }
 ```
 
+## Restaurant Data Integration Workflow
+
+```mermaid
+flowchart TD
+    subgraph "Restaurant Discovery"
+        A[User Location & Preferences]
+        B[Dietary Restrictions & Cuisine]
+        C[Meal Timing & Budget]
+    end
+
+    subgraph "Multi-Source Search"
+        D[Zomato API<br/>Local restaurants, reviews]
+        E[Yelp API<br/>Photos, ratings, popular dishes]
+        F[Google Places<br/>Opening hours, busy times]
+        G[Local Food APIs<br/>Street food, hidden gems]
+    end
+
+    subgraph "Data Processing"
+        H[Merge & Deduplicate]
+        I[Enrich with Menu Data]
+        J[Calculate Authenticity Score]
+        K[Apply Dietary Filters]
+    end
+
+    subgraph "Meal Planning Integration"
+        L[Schedule Meal Times]
+        M[Route Optimization with Meals]
+        N[Budget Allocation for Food]
+        O[Generate Food Recommendations]
+    end
+
+    A --> D
+    B --> E
+    C --> F
+    A --> G
+
+    D --> H
+    E --> H
+    F --> H
+    G --> H
+
+    H --> I --> J --> K
+    K --> L --> M --> N --> O
+
+    O --> P[Integrated Itinerary<br/>with Dining Plan]
+
+    classDef discovery fill:#e3f2fd
+    classDef search fill:#f1f8e9
+    classDef process fill:#fff3e0
+    classDef integrate fill:#fce4ec
+
+    class A,B,C discovery
+    class D,E,F,G search
+    class H,I,J,K process
+    class L,M,N,O integrate
+```
+
+### Restaurant Constraint Types
+- **Meal Timing**: Breakfast (7-10h), Lunch (11-14h), Dinner (17-21h)
+- **Dietary Restrictions**: Vegetarian, Vegan, Halal, Gluten-free
+- **Budget Constraints**: Street food ($1-3), Local restaurants ($5-15), Fine dining ($20+)
+- **Cultural Preferences**: Authentic local cuisine vs international options
+- **Group Constraints**: Family-friendly, romantic settings, large groups
+
 ### Cache Strategy
 - **L1 Cache**: Browser localStorage (user preferences, recent searches)
-- **L2 Cache**: Redis (API responses, computed routes)
-- **L3 Cache**: PostgreSQL materialized views (aggregated data)
-- **TTL Strategy**: Dynamic TTL based on data volatility (weather: 1h, POI: 24h, maps: 1 week)
+- **L2 Cache**: Redis (API responses, computed routes, restaurant data)
+- **L3 Cache**: PostgreSQL materialized views (aggregated data, popular restaurants)
+- **TTL Strategy**: Dynamic TTL based on data volatility (weather: 1h, POI: 24h, restaurants: 4h, maps: 1 week)

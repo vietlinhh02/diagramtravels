@@ -76,7 +76,9 @@ mindmap
     Creative Tasks
       Activity brainstorming
       Local culture insights
-      Food recommendations
+      Restaurant recommendations
+      Local food discovery
+      Culinary experiences
       Hidden gems suggestions
     Conversational
       Welcome messages
@@ -106,7 +108,9 @@ mindmap
       Optimization decisions
     Critical Output
       Final itinerary generation
-      Budget calculations
+      Budget calculations with meal costs
+      Dietary restriction validation
+      Restaurant timing optimization
       Safety recommendations
       Legal/visa requirements
 ```
@@ -198,6 +202,36 @@ User Input: {user_request}
 Output: Provide 5-7 creative activity suggestions with brief descriptions. Be enthusiastic but realistic.
 ```
 
+#### Cheap LLM - Restaurant & Food Discovery
+```
+System: You are a local food expert and culinary travel assistant. Suggest authentic dining experiences and local food discoveries.
+
+Context:
+- Destination: {destination}
+- Cuisine Preferences: {cuisine_types}
+- Dietary Restrictions: {dietary_restrictions}
+- Budget Range: {food_budget}
+- Meal Type: {meal_type}
+- Group Size: {group_size}
+- Local Food Culture: {local_food_context}
+
+User Input: {user_request}
+
+Guidelines:
+- Prioritize authentic local experiences over tourist restaurants
+- Include street food and hidden gems when appropriate
+- Consider opening hours and location convenience
+- Mention must-try local dishes and specialties
+- Balance budget with quality recommendations
+
+Output: Provide 5-7 dining suggestions with:
+- Restaurant/venue name and type
+- Signature dishes or specialties
+- Price range and ambiance
+- Why it's special for travelers
+- Best timing to visit
+```
+
 #### Structured LLM - Itinerary Validation
 ```
 System: You are a precise travel planning validator. Check itinerary feasibility and return structured JSON.
@@ -221,6 +255,44 @@ Task: Validate the itinerary and return JSON with:
 Output must be valid JSON only.
 ```
 
+#### Structured LLM - Meal Planning Integration
+```
+System: You are a precise meal planning optimizer. Integrate restaurant visits into travel itineraries with timing and budget validation.
+
+Schema: {meal_planning_schema}
+
+Constraints:
+- Restaurant opening hours: {restaurant_hours}
+- Travel times between venues: {travel_matrix}
+- Meal timing preferences: {meal_windows}
+- Dietary restrictions: {dietary_constraints}
+- Daily food budget: {food_budget_limits}
+- Group preferences: {group_dining_needs}
+
+Input Data:
+- Current itinerary: {current_itinerary}
+- Restaurant options: {restaurant_candidates}
+- User meal preferences: {meal_preferences}
+
+Task: Generate optimized meal schedule and return JSON with:
+1. meal_schedule: array of scheduled meals with timing
+2. restaurant_assignments: matched restaurants for each meal
+3. budget_breakdown: cost allocation per meal/day
+4. timing_conflicts: any scheduling issues
+5. alternative_options: backup restaurants for flexibility
+6. dietary_compliance: validation of restrictions met
+7. optimization_score: 0-1 based on preferences match
+
+Optimization Priorities:
+1. Respect dietary restrictions (critical)
+2. Stay within budget constraints
+3. Minimize travel time between activities
+4. Match authentic local experience preferences
+5. Consider restaurant busy times and quality
+
+Output must be valid JSON only.
+```
+
 ## Context Management
 
 ### Vector Store Integration
@@ -231,42 +303,52 @@ graph TB
         B[POI Descriptions]
         C[Activity Reviews]
         D[Historical Itineraries]
+        E[Restaurant Data & Menus]
+        F[Food Culture Context]
     end
 
     subgraph "Vector Operations"
-        E[Text Embedding]
-        F[Similarity Search]
-        G[Context Retrieval]
+        G[Text Embedding]
+        H[Similarity Search]
+        I[Context Retrieval]
     end
 
     subgraph "Context Augmentation"
-        H[Relevant POIs]
-        I[Similar Trips]
-        J[User Patterns]
-        K[Seasonal Info]
+        J[Relevant POIs]
+        K[Similar Trips]
+        L[User Patterns]
+        M[Seasonal Info]
+        N[Restaurant Recommendations]
+        O[Local Food Culture]
     end
 
-    A --> E
-    B --> E
-    C --> E
-    D --> E
+    A --> G
+    B --> G
+    C --> G
+    D --> G
+    E --> G
+    F --> G
 
-    E --> F --> G
+    G --> H --> I
 
-    G --> H
-    G --> I
-    G --> J
-    G --> K
+    I --> J
+    I --> K
+    I --> L
+    I --> M
+    I --> N
+    I --> O
 
-    H --> LLM[LLM Input]
-    I --> LLM
-    J --> LLM
+    J --> LLM[LLM Input]
     K --> LLM
+    L --> LLM
+    M --> LLM
+    N --> LLM
+    O --> LLM
 ```
 
 ### Advanced Context Window Management & Optimization
 
-**TravelSense v2** sử dụng sophisticated context management để maximize hiệu quả của cả hai LLM tiers. **Context Window Allocation** được tối ưu với max 8K tokens cho cheap LLM (đủ cho creative tasks) và 32K tokens cho structured LLM (handle complex reasoning với nhiều constraints). **Dynamic Priority Ranking** áp dụng weighted scoring: User input (weight: 1.0), Current trip context (0.8), Relevant POI data (0.6), Historical patterns (0.4), và General knowledge (0.2). **Intelligent Truncation Strategy** giữ lại most recent user interactions, most relevant context from vector search, và core constraint data, đồng thời compress generic information thành summaries để tiết kiệm tokens mà vẫn preserve essential context.
+**TravelSense v2** sử dụng sophisticated context management để maximize hiệu quả của cả hai LLM tiers. **Context Window Allocation** được tối ưu với max 8K tokens cho cheap LLM (đủ cho creative tasks bao gồm restaurant recommendations) và 32K tokens cho structured LLM (handle complex reasoning với nhiều constraints về timing, budget và dietary requirements). **Dynamic Priority Ranking** áp dụng weighted scoring: User input (weight: 1.0), Current trip context (0.8), Relevant POI & restaurant data (0.6), Dietary restrictions & food preferences (0.7), Historical patterns (0.4), và General knowledge (0.2). **Intelligent Truncation Strategy** giữ lại most recent user interactions, most relevant context from vector search, core constraint data và critical dietary information, đồng thời compress generic information thành summaries để tiết kiệm tokens mà vẫn preserve essential context.
 
 ## Quality Assurance
 

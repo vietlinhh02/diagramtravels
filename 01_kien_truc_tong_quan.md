@@ -20,6 +20,7 @@ graph TB
         userSvc["User Service"]
         tripSvc["Trip Service"]
         itinerarySvc["Itinerary Service"]
+        restaurantSvc["Restaurant Service"]
         exportSvc["Export Service"]
     end
 
@@ -42,6 +43,7 @@ graph TB
         mapsAPI["Maps API<br/>(Google/OSM)"]
         weatherAPI["Weather API<br/>(OpenWeather)"]
         accommodAPI["Accommodation<br/>(Booking.com)"]
+        restaurantAPI["Restaurant APIs<br/>(Zomato/Yelp/Local)"]
     end
 
     subgraph "Background Jobs"
@@ -61,6 +63,7 @@ graph TB
     planner --> userSvc
     planner --> tripSvc
     planner --> itinerarySvc
+    planner --> restaurantSvc
     planner --> exportSvc
     planner --> aiOrch
 
@@ -72,6 +75,7 @@ graph TB
     userSvc --> postgres
     tripSvc --> postgres
     itinerarySvc --> postgres
+    restaurantSvc --> postgres
     exportSvc --> postgres
     exportSvc --> fileStore
 
@@ -82,6 +86,7 @@ graph TB
     planner --> mapsAPI
     planner --> weatherAPI
     planner --> accommodAPI
+    restaurantSvc --> restaurantAPI
 
     planner --> queue
     queue --> optimizer
@@ -99,10 +104,10 @@ graph TB
 
     class web,mobile client
     class gateway,auth,rate api
-    class planner,userSvc,tripSvc,itinerarySvc,exportSvc service
+    class planner,userSvc,tripSvc,itinerarySvc,restaurantSvc,exportSvc service
     class aiOrch,cheapLLM,strictLLM,vectorDB,embedding ai
     class postgres,redis,fileStore data
-    class placesAPI,mapsAPI,weatherAPI,accommodAPI external
+    class placesAPI,mapsAPI,weatherAPI,accommodAPI,restaurantAPI external
     class queue,optimizer,crawler,exporter bg
 ```
 
@@ -112,11 +117,11 @@ graph TB
 
 **API Gateway** đóng vai trò trung gian quan trọng với hệ thống authentication sử dụng JWT tokens kết hợp OAuth để người dùng có thể đăng nhập qua Google/Facebook một cách tiện lợi. Rate limiting được cấu hình theo user tier để bảo vệ khỏi abuse (free users: 100 requests/hour, premium: 1000 requests/hour), đồng thời load balancing phân tải requests đến các core services để đảm bảo hiệu năng ổn định ngay cả khi traffic tăng cao.
 
-**Core Services** áp dụng kiến trúc microservices với 5 service chính: Planner Service là orchestrator điều phối các service khác và chứa logic nghiệp vụ chính; User Service quản lý profiles, preferences và trip history; Trip Service xử lý CRUD cho trips, constraints và budget; Itinerary Service chuyên về xây dựng và tối ưu lịch trình với các algorithms phức tạp; Export Service chịu trách nhiệm xuất PDF, ICS, JSON và tạo sharing links với khả năng scale riêng biệt.
+**Core Services** áp dụng kiến trúc microservices với 6 service chính: Planner Service là orchestrator điều phối các service khác và chứa logic nghiệp vụ chính; User Service quản lý profiles, preferences và trip history; Trip Service xử lý CRUD cho trips, constraints và budget; Itinerary Service chuyên về xây dựng và tối ưu lịch trình với các algorithms phức tạp; Restaurant Service quản lý tìm kiếm nhà hàng, menu data, dietary preferences và meal planning integration; Export Service chịu trách nhiệm xuất PDF, ICS, JSON và tạo sharing links với khả năng scale riêng biệt.
 
 **AI Layer** là trái tim của hệ thống với AI Orchestrator điều phối giữa 2 loại LLM theo chiến lược cost-efficient: Cheap LLM (GPT-3.5/Claude Haiku) xử lý chat, ideation và creative suggestions; Structured LLM (GPT-4/Claude Sonnet) đảm nhận schema validation và constraint checking quan trọng. Vector Store cung cấp semantic search cho places và activities, trong khi Embedding Service tạo embeddings cho content để tìm kiếm tương tự thông minh.
 
-**Data Layer** kết hợp 3 loại storage khác nhau: PostgreSQL cho ACID transactions và relational data chính; Redis cho session storage, caching multi-level và pub/sub messaging; File Storage (S3/CloudFlare R2) cho PDFs, images và exported files với CDN global distribution. **External APIs** tích hợp đa dạng nguồn dữ liệu: Places APIs cung cấp POI data với reviews, photos và opening hours; Maps APIs xử lý routing, distance matrix và geocoding; Weather APIs cung cấp forecasts và historical data; Accommodation APIs đa dạng từ hotels đến vacation rentals với availability, pricing và booking capabilities.
+**Data Layer** kết hợp 3 loại storage khác nhau: PostgreSQL cho ACID transactions và relational data chính; Redis cho session storage, caching multi-level và pub/sub messaging; File Storage (S3/CloudFlare R2) cho PDFs, images và exported files với CDN global distribution. **External APIs** tích hợp đa dạng nguồn dữ liệu: Places APIs cung cấp POI data với reviews, photos và opening hours; Maps APIs xử lý routing, distance matrix và geocoding; Weather APIs cung cấp forecasts và historical data; Accommodation APIs đa dạng từ hotels đến vacation rentals với availability, pricing và booking capabilities; Restaurant APIs (Zomato, Yelp, local sources) cung cấp dining options, menus, reviews và local food culture insights.
 
 **Background Jobs** xử lý các tác vụ nặng và dài: Route Optimizer chạy TSP/VRP algorithms cho multi-day trips phức tạp; Data Crawler thường xuyên cập nhật POI data và pricing từ nhiều nguồn; File Exporter xử lý async PDF/ICS generation để không block main thread, tất cả đều được quản lý qua message queue với retry logic và error handling.
 

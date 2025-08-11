@@ -76,6 +76,157 @@ API Key: Required (free signup)
 Usage: "Tìm kiếm địa điểm ăn uống, giải trí, tham quan"
 ```
 
+### 🍽️ Restaurant & Food APIs
+
+#### Zomato API (Free tier)
+```yaml
+Service: Zomato Restaurant API
+Endpoint: https://developers.zomato.com/api/
+Free Tier: 1000 calls/day
+Features:
+  - Restaurant search by location
+  - Menu details & pricing
+  - Reviews & ratings
+  - Cuisine types & filters
+  - Operating hours
+  - Delivery/booking options
+API Key: Required (free signup)
+Usage: "Tìm kiếm nhà hàng, menu, giá cả và đánh giá"
+```
+
+#### Yelp Fusion API (Free tier)
+```yaml
+Service: Yelp Fusion API
+Endpoint: https://api.yelp.com/v3/
+Free Tier: 5000 calls/day
+Features:
+  - Business search (restaurants/cafes)
+  - Reviews & photos
+  - Operating hours
+  - Price range indicators
+  - Popular dishes/categories
+API Key: Required (free signup)
+Usage: "Tìm kiếm nhà hàng với reviews chi tiết và photos"
+```
+
+#### OpenMenu API (Free)
+```yaml
+Service: OpenMenu
+Endpoint: https://openmenu.com/api/
+Free Tier: No hard limits
+Features:
+  - Restaurant menus
+  - Dish details & pricing
+  - Nutritional information
+  - Dietary restrictions
+  - Multi-language support
+API Key: Required (free signup)
+Usage: "Lấy thông tin menu chi tiết và giá cả món ăn"
+```
+
+#### TripAdvisor Restaurant API (Limited Free)
+```yaml
+Service: TripAdvisor Content API
+Endpoint: https://developer-tripadvisor.com/
+Free Tier: 10,000 requests/month
+Features:
+  - Restaurant listings
+  - Traveler reviews
+  - Photos & rankings
+  - Award badges
+  - Price range & cuisine
+Requirements: Application approval
+Usage: "Reviews uy tín từ travelers, ranking nhà hàng"
+```
+
+#### Google Places API - Restaurant Focus
+```yaml
+Service: Google Places API (Restaurant filtering)
+Endpoint: https://maps.googleapis.com/maps/api/place/
+Free Tier: $200 credit/month
+Features:
+  - Restaurant search with type=restaurant
+  - Operating hours & popular times
+  - Price levels ($ to $$$$)
+  - Reviews & ratings
+  - Photos & contact info
+  - Real-time busy status
+API Key: Required (credit card verification)
+Usage: "Dữ liệu nhà hàng chất lượng cao với popular times"
+```
+
+#### FourSquare Venue Categories - Food Specific
+```yaml
+Food Categories:
+  - Restaurant (categoryId: 4d4b7105d754a06374d81259)
+  - Fast Food (categoryId: 4bf58dd8d48988d16e941735)
+  - Coffee Shop (categoryId: 4bf58dd8d48988d1e0931735)
+  - Bar (categoryId: 4bf58dd8d48988d116941735)
+  - Street Food (categoryId: 4f04af1f2fb6e1c99f3db0bb)
+  - Local Cuisine specific categories
+Usage: "Tìm kiếm chính xác theo loại hình ăn uống"
+```
+
+#### Local Food APIs (Vietnam Focus)
+
+##### Foody API (Unofficial)
+```yaml
+Service: Foody.vn Scraping
+Endpoint: Web scraping với respect rate limits
+Free: Yes (với responsible scraping)
+Features:
+  - Vietnamese restaurant database
+  - Local reviews & ratings
+  - Delivery options
+  - Price ranges in VND
+  - Vietnamese cuisine specialties
+Usage: "Database nhà hàng Việt Nam comprehensive"
+```
+
+##### Now.vn Restaurant API
+```yaml
+Service: Now.vn Delivery Platform
+Endpoint: Partner API hoặc web scraping
+Free Tier: Partner program
+Features:
+  - Restaurant delivery options
+  - Menu with Vietnamese pricing
+  - Popular Vietnamese dishes
+  - Local restaurant chains
+Usage: "Thông tin giao hàng và menu Việt Nam"
+```
+
+#### Street Food & Local Cuisine APIs
+
+##### iFood API (Latin America - reference model)
+```yaml
+Service: iFood Developer API
+Endpoint: https://developer.ifood.com.br/
+Free Tier: Testing environment
+Features:
+  - Local restaurant database
+  - Street food vendors
+  - Popular local dishes
+  - Price in local currency
+Usage: "Model để tích hợp local food sources"
+```
+
+##### Local Food Discovery APIs
+```yaml
+Approach: Community-driven data
+Sources:
+  - OpenStreetMap amenity=restaurant tags
+  - WikiData restaurant entries
+  - Facebook Places API (limited)
+  - Instagram location tags (public)
+Features:
+  - Local hidden gems
+  - Street food locations
+  - Market food courts
+  - Traditional cuisine spots
+Usage: "Khám phá ẩm thực địa phương authentic"
+```
+
 #### Google Places API (Free tier)
 ```yaml
 Service: Google Places API
@@ -305,6 +456,12 @@ FOURSQUARE_API_KEY=xxx
 GOOGLE_PLACES_API_KEY=xxx
 OVERPASS_API_URL=https://overpass-api.de/api
 
+# Restaurant & Food
+ZOMATO_API_KEY=xxx
+YELP_API_KEY=xxx
+OPENMENU_API_KEY=xxx
+TRIPADVISOR_API_KEY=xxx
+
 # Accommodation
 BOOKING_PARTNER_ID=xxx
 RAPIDAPI_AIRBNB_KEY=xxx
@@ -326,6 +483,47 @@ class ExternalAPIService {
     }
   }
 
+  async searchRestaurants(location: [number, number], filters: RestaurantFilters) {
+    // Multi-source restaurant search strategy
+    const results = await Promise.allSettled([
+      this.zomatoSearch(location, filters),
+      this.yelpSearch(location, filters),
+      this.googlePlacesRestaurantSearch(location, filters)
+    ]);
+
+    // Merge and deduplicate results
+    const restaurants = this.mergeRestaurantResults(results);
+    
+    // Enrich with menu data if available
+    return await this.enrichWithMenuData(restaurants);
+  }
+
+  async getRestaurantMenu(restaurantId: string, provider: string) {
+    try {
+      switch (provider) {
+        case 'zomato':
+          return await this.zomatoMenuAPI(restaurantId);
+        case 'openmenu':
+          return await this.openMenuAPI(restaurantId);
+        default:
+          return await this.fallbackMenuSearch(restaurantId);
+      }
+    } catch (error) {
+      return null; // Menu not available
+    }
+  }
+
+  async findLocalFood(location: [number, number], cuisineType?: string) {
+    // Focus on local and authentic food experiences
+    const sources = await Promise.allSettled([
+      this.foursquareStreetFood(location),
+      this.localFoodDiscovery(location, cuisineType),
+      this.tripadvisorLocalFavorites(location)
+    ]);
+
+    return this.rankByAuthenticity(sources);
+  }
+
   async getWeather(location: [number, number], dates: Date[]) {
     // Try OpenWeatherMap first
     try {
@@ -345,6 +543,48 @@ class ExternalAPIService {
     
     return [...hotels, ...rentals].sort((a, b) => a.price - b.price);
   }
+
+  // Restaurant-specific helper methods
+  private mergeRestaurantResults(results: PromiseSettledResult<any>[]) {
+    const restaurants = [];
+    results.forEach(result => {
+      if (result.status === 'fulfilled' && result.value) {
+        restaurants.push(...result.value);
+      }
+    });
+    
+    // Deduplicate by name + location similarity
+    return this.deduplicateRestaurants(restaurants);
+  }
+
+  private async enrichWithMenuData(restaurants: any[]) {
+    return Promise.all(restaurants.map(async (restaurant) => {
+      const menu = await this.getRestaurantMenu(restaurant.id, restaurant.provider);
+      return { ...restaurant, menu };
+    }));
+  }
+
+  private rankByAuthenticity(sources: PromiseSettledResult<any>[]) {
+    // Score based on local reviews, hidden gem indicators, etc.
+    const allResults = sources.flatMap(s => 
+      s.status === 'fulfilled' ? s.value : []
+    );
+    
+    return allResults.sort((a, b) => {
+      const scoreA = this.calculateAuthenticityScore(a);
+      const scoreB = this.calculateAuthenticityScore(b);
+      return scoreB - scoreA;
+    });
+  }
+}
+
+interface RestaurantFilters {
+  cuisine?: string[];
+  priceRange?: [number, number];
+  mealType?: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+  dietaryRestrictions?: string[];
+  radius?: number;
+  openNow?: boolean;
 }
 ```
 
@@ -480,18 +720,25 @@ curl "https://nominatim.openstreetmap.org/search" \
 
 **Fallback strategy** được thiết kế với 3 tiers: nếu primary source (Booking.com) không có availability hoặc rate limit, hệ thống automatically fallback sang Agoda hoặc Expedia; nếu cả hai đều fail, sử dụng aggregator APIs để tìm alternatives; cuối cùng, cached data từ previous searches được sử dụng với disclaimer về tính cập nhật. **Revenue optimization** through commission tracking - mỗi booking được route qua affiliate link tương ứng, với intelligent routing dựa trên commission rates và user preferences (budget vs luxury vs unique properties).
 
-### Estimated Monthly Costs (USD) - Updated
+### Estimated Monthly Costs (USD) - Updated với Restaurant APIs
 
 | Service Category | Primary Provider | Free Tier | Est. Usage | Overage Cost |
 |------------------|------------------|-----------|------------|--------------|
 | **Weather** | OpenWeatherMap | 1K calls/day | 25K calls/month | $0 |
 | **Places** | Foursquare + Overpass | 1K + unlimited | 30K calls/month | $30 |
+| **Restaurants** | Zomato + Yelp + Google | 1K + 5K + $200 credit | 40K calls/month | $25 |
 | **Maps** | MapBox + OSM | 50K requests | 70K requests | $8 |
 | **Accommodation** | Booking.com + Agoda | Commission-based | ~500 searches/month | $0* |
 | **Additional APIs** | RapidAPI suite | Various tiers | 15K requests/month | $15 |
-| **LLM Costs** | OpenAI + Anthropic | Pay-per-token | ~$0.02/trip average | $20 |
+| **LLM Costs** | OpenAI + Anthropic | Pay-per-token | ~$0.03/trip average | $30 |
 | **CDN & Storage** | CloudFlare R2 | 10GB free | 50GB usage | $5 |
-| **Total** | | | | **$78/month** |
+| **Total** | | | | **$113/month** |
 
 *Accommodation APIs free với commission revenue, estimated $150-300/month revenue từ bookings*
-**Net cost ~$25-50/month** for 1000 active users tạo 100 trips/month với 5% booking conversion rate
+**Net cost ~$60-85/month** for 1000 active users tạo 100 trips/month với 5% booking conversion rate
+
+### Restaurant API Integration Benefits
+- **Revenue Opportunity**: Affiliate commissions từ reservation platforms (OpenTable, Eatigo)
+- **User Experience**: Complete meal planning integrated với itinerary
+- **Local Discovery**: Street food và hidden gems tăng authenticity
+- **Budget Planning**: Accurate meal cost estimates theo local pricing

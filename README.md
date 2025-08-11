@@ -12,7 +12,7 @@ Hệ thống được xây dựng trên triết lý "nhập liệu tối thiểu
 
 **Bước 1 - Nhập liệu thông minh**: Người dùng chỉ cần nhập thông tin cơ bản (điểm xuất phát: Hà Nội, điểm đến: Đà Nẵng-Hội An, thời gian: 4 ngày, 4 người, ngân sách: 20M, phong cách: gia đình có trẻ em). Hệ thống AI sẽ phân tích và đưa ra các câu hỏi bổ sung thông minh như "Bạn có muốn ưu tiên resort gần biển hay ở trung tâm phố cổ Hội An?" hoặc "Trẻ em có sợ độ cao không (để gợi ý cầu Vàng)?"
 
-**Bước 2 - Tạo nháp thông minh**: Dựa trên thông tin và phân tích từ vector store về các chuyến đi tương tự, hệ thống tạo nháp lịch trình với các gợi ý như: Ngày 1 - Bay đến Đà Nẵng, check-in resort, chiều tắm biển Mỹ Khê; Ngày 2 - Sáng Bà Nà Hills (cầu Vàng), chiều phố cổ Hội An; Ngày 3 - Làng rau Trà Quế, thả đèn lồng, chợ đêm; Ngày 4 - Tham quan chùa, mua sắm, bay về. Mỗi gợi ý đều kèm nguồn tham khảo, giờ mở cửa, thời gian di chuyển và ước tính chi phí.
+**Bước 2 - Tạo nháp thông minh**: Dựa trên thông tin và phân tích từ vector store về các chuyến đi tương tự, hệ thống tạo nháp lịch trình với các gợi ý như: Ngày 1 - Bay đến Đà Nẵng, check-in resort, trưa thưởng thức mì Quảng tại quán Bà Mua, chiều tắm biển Mỹ Khê; Ngày 2 - Sáng Bà Nà Hills (cầu Vàng), trưa buffet trên núi, chiều phố cổ Hội An, tối ăn cao lầu tại Thành; Ngày 3 - Sáng làng rau Trà Quế và nấu ăn cùng nông dân, chiều thả đèn lồng, tối chợ đêm và thử đặc sản bánh xèo; Ngày 4 - Sáng tham quan chùa Linh Ứng, trưa hải sản tại bãi biển, mua sắm và bay về. Mỗi gợi ý đều kèm nguồn tham khảo, giờ mở cửa, menu và giá cả, thời gian di chuyển và ước tính chi phí bao gồm cả ăn uống.
 
 **Bước 3 - Tối ưu và tương tác**: Người dùng có thể kéo-thả để thay đổi thứ tự (ví dụ đổi Bà Nà Hills sang ngày 3), hệ thống sẽ tự động tính toán lại thời gian di chuyển, kiểm tra xung đột về giờ mở cửa và cập nhật chi phí. Nếu có vấn đề (như Bà Nà Hills đóng cửa vào thứ 3), hệ thống sẽ cảnh báo và đề xuất phương án thay thế. Bảng ngân sách được cập nhật real-time theo từng nhóm: lưu trú (40%), ăn uống (25%), vận chuyển (20%), vé tham quan (15%).
 
@@ -25,6 +25,7 @@ Hệ thống được xây dựng trên triết lý "nhập liệu tối thiểu
 - [03 — AI Orchestration](./03_ai_orchestration.md)
 - [04 — Deployment & Infrastructure](./04_deployment_infrastructure.md)
 - [05 — API miễn phí cho project](./05_free_apis.md)
+- [06 — Tích hợp Ăn uống & Nhà hàng](./06_dining_integration.md)
 
 ## Công nghệ sử dụng
 
