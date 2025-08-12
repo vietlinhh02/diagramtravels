@@ -8,15 +8,51 @@ Hệ thống được xây dựng trên triết lý "nhập liệu tối thiểu
 
 ## Kịch bản sử dụng thực tế
 
+### Kịch bản 1: Lập kế hoạch du lịch gia đình
+
 **Tình huống mẫu**: Gia đình 4 người (2 người lớn, 2 trẻ em 8 và 12 tuổi) muốn đi du lịch Đà Nẵng - Hội An trong 4 ngày 3 đêm với ngân sách 20 triệu VNĐ, ưu tiên hoạt động phù hợp với trẻ em và muốn trải nghiệm cả văn hóa lẫn biển.
 
-**Bước 1 - Nhập liệu thông minh**: Người dùng chỉ cần nhập thông tin cơ bản (điểm xuất phát: Hà Nội, điểm đến: Đà Nẵng-Hội An, thời gian: 4 ngày, 4 người, ngân sách: 20M, phong cách: gia đình có trẻ em). Hệ thống AI sẽ phân tích và đưa ra các câu hỏi bổ sung thông minh như "Bạn có muốn ưu tiên resort gần biển hay ở trung tâm phố cổ Hội An?" hoặc "Trẻ em có sợ độ cao không (để gợi ý cầu Vàng)?"
+**Bước 1 - Input Phase (Nhập liệu thông minh)**: Người dùng nhập thông tin cơ bản (điểm xuất phát: Hà Nội, điểm đến: Đà Nẵng-Hội An, thời gian: 4 ngày, 4 người, ngân sách: 20M). Hệ thống Missing Info Detector phân tích user profile history và tạo priority question list với completeness score. AI đưa ra câu hỏi bổ sung theo mức độ ưu tiên: "Trẻ em có sợ độ cao không?" (cho cầu Vàng), "Ưu tiên resort gần biển hay trung tâm Hội An?", "Có ai bị dị ứng thực phẩm?". Người dùng có thể bỏ qua câu hỏi nào không quan trọng, hệ thống vẫn áp dụng smart defaults từ similar trips.
 
-**Bước 2 - Tạo nháp thông minh**: Dựa trên thông tin và phân tích từ vector store về các chuyến đi tương tự, hệ thống tạo nháp lịch trình với các gợi ý như: Ngày 1 - Bay đến Đà Nẵng, check-in resort, trưa thưởng thức mì Quảng tại quán Bà Mua, chiều tắm biển Mỹ Khê; Ngày 2 - Sáng Bà Nà Hills (cầu Vàng), trưa buffet trên núi, chiều phố cổ Hội An, tối ăn cao lầu tại Thành; Ngày 3 - Sáng làng rau Trà Quế và nấu ăn cùng nông dân, chiều thả đèn lồng, tối chợ đêm và thử đặc sản bánh xèo; Ngày 4 - Sáng tham quan chùa Linh Ứng, trưa hải sản tại bãi biển, mua sắm và bay về. Mỗi gợi ý đều kèm nguồn tham khảo, giờ mở cửa, menu và giá cả, thời gian di chuyển và ước tính chi phí bao gồm cả ăn uống.
+**Bước 2 - Data Enrichment (Làm giàu dữ liệu)**: Hệ thống chạy song song multiple processes: Vector Search tìm similar family trips đến Đà Nẵng-Hội An từ database; External APIs gọi đồng thời Places API (POI details, reviews), Weather API (dự báo 4 ngày), Maps API (distance matrix), Restaurant APIs (Zomato/local sources cho dining options), và Accommodation APIs (hotels/resorts có kids-friendly facilities). LLM Processing phân tích user persona từ tất cả dữ liệu này để generate personalized activity ideas và suggest hidden gems phù hợp với gia đình có trẻ em.
 
-**Bước 3 - Tối ưu và tương tác**: Người dùng có thể kéo-thả để thay đổi thứ tự (ví dụ đổi Bà Nà Hills sang ngày 3), hệ thống sẽ tự động tính toán lại thời gian di chuyển, kiểm tra xung đột về giờ mở cửa và cập nhật chi phí. Nếu có vấn đề (như Bà Nà Hills đóng cửa vào thứ 3), hệ thống sẽ cảnh báo và đề xuất phương án thay thế. Bảng ngân sách được cập nhật real-time theo từng nhóm: lưu trú (40%), ăn uống (25%), vận chuyển (20%), vé tham quan (15%).
+**Bước 3 - Draft Generation (Tạo nháp với constraint modeling)**: Hệ thống xây dựng comprehensive constraint matrix bao gồm time windows (giờ mở cửa POI, kids bedtime), budget limits per category, group preferences (accessibility, kids-friendly activities). Route Optimizer chạy Nearest Neighbor TSP kết hợp local 2-opt optimization, sau đó Time Feasibility Check xác minh tính khả thi. Draft itinerary được tạo với timeline chi tiết: Ngày 1 (bay 8:00, đến 10:30, check-in resort 12:00, mì Quảng Bà Mua 13:00-14:30, biển Mỹ Khê 15:00-17:30); Ngày 2 (Bà Nà Hills 8:00-15:00 với gap warning về thời gian di chuyển đến Hội An); kèm Gap Detection highlight những thông tin còn thiếu và source citation cho mỗi gợi ý.
 
-**Bước 4 - Hoàn thiện và xuất**: Sau khi hài lòng với lịch trình, người dùng có thể xuất thành PDF có bản đồ chi tiết, file ICS để đưa vào lịch điện thoại, hoặc link chia sẻ với gia đình. Hệ thống sẽ khóa phiên bản này để đảm bảo tính nhất quán khi booking, nhưng vẫn cho phép tạo bản sao để tiếp tục chỉnh sửa nếu cần.
+**Bước 4 - User Interaction (Tương tác real-time)**: Interface cho phép drag-drop POI với live recalculation. Khi user chọn resort gần biển thay vì trung tâm, hệ thống instantly update travel times, detect potential conflicts (ví dụ: từ resort đến phố cổ Hội An chiều nay có thể tắc đường), và trigger Alternative Suggestions. Budget breakdown được update real-time theo từng thay đổi với detailed cost estimates từ accommodation pricing APIs. WebSocket connection đảm bảo UI reflects changes immediately với visual indicators cho feasible/conflict states.
+
+**Bước 5 - Optimization (Tối ưu cuối cùng)**: Multi-objective optimization engine chạy Genetic Algorithm cho global search kết hợp Simulated Annealing cho local optimization, với primary objective là feasibility và secondary objective là user satisfaction score. LLM Structured Validation (GPT-4/Claude Sonnet) double-check mọi constraints và suggest alternatives nếu phát hiện issues. Final itinerary được tạo với optimized route, detailed timeline, backup options cho mỗi activity và comprehensive cost breakdown.
+
+**Bước 6 - Export & Version Management**: Hệ thống tạo snapshot của current state và calculate diff từ previous versions. User có thể export multiple formats: PDF với embedded maps và QR codes cho bookings, ICS với calendar events cho từng thành viên gia đình, JSON cho integration với travel apps, và shareable web link với real-time updates. Version control cho phép rollback hoặc tạo variations, với change history tracking để hiểu user preferences cho future trips.
+
+### Kịch bản 2: Khám phá tại địa phương (Local Discovery)
+
+**Tình huống**: Anh Minh ở Hà Nội muốn tìm điều gì đó thú vị để làm vào cuối tuần này, nhưng không có ý tưởng cụ thể.
+
+**Bước 1 - Weekend Planner tự động**: Vào thứ Sáu, TravelSense gửi thông báo: "Cuối tuần này trời mát mẻ và có triển lãm nghệ thuật mới tại Vincom Center. Bạn có muốn thử một food tour mini quanh Hàng Bông kết hợp xem triển lãm không?"
+
+**Bước 2 - Tùy chỉnh theo mood**: Anh Minh nhập "Tìm một nơi yên tĩnh để đọc sách và uống cafe", hệ thống gợi ý 3 quán cafe ít người biết với không gian riêng tư, kèm menu đồ uống và đánh giá về độ ồn.
+
+**Bước 3 - Tạo Food Tour tự động**: Chọn chủ đề "bún phở Hà Nội", AI tạo ra tuyến đường đi qua 4 quán bún phở nổi tiếng trong bán kính 2km, tối ưu hóa quãng đường và thời gian, ước tính tổng chi phí 150K cho cả tour.
+
+### Kịch bản 3: Xây dựng Travel Log và chia sẻ kinh nghiệm
+
+**Tình huống**: Chị Lan vừa hoàn thành chuyến đi Sapa và muốn lưu lại kỷ niệm đồng thời chia sẻ với bạn bè.
+
+**Bước 1 - Auto Travel Log**: Sau khi chuyến đi kết thúc, TravelSense tự động tạo nhật ký với bản đồ route đã đi, các địa điểm check-in và timeline chi tiết. Chị Lan có thể thêm ảnh và ghi chú cá nhân.
+
+**Bước 2 - Tạo Collection**: Chị Lan tạo bộ sưu tập "Trekking cho người mới bắt đầu" với các địa điểm, tips và gear list từ kinh nghiệm thực tế, chia sẻ công khai để giúp các traveler khác.
+
+**Bước 3 - Social Integration**: Theo dõi travel planner uy tín, xem các lịch trình mới và được notify khi có bộ sưu tập mới phù hợp với sở thích.
+
+### Kịch bản 4: Gamification và thử thách
+
+**Tình huống**: Nam, sinh viên 22 tuổi, thích khám phá những nơi mới nhưng ngân sách hạn chế.
+
+**Bước 1 - Thử thách hàng tháng**: Nhận thử thách "Khám phá 5 quán ăn dưới 50K trong tháng này", mỗi quán được AI gợi ý dựa trên location và review rating.
+
+**Bước 2 - Tích điểm và huy hiệu**: Hoàn thành lịch trình cuối tuần tại Hà Nội cũ nhận 50 điểm, viết review chi tiết nhận thêm 25 điểm. Đạt 500 điểm trong tháng được huy hiệu "Local Explorer" và voucher Grab 20K.
+
+**Bước 3 - Thăng hạng**: Sau 6 tháng tích cực, Nam đạt level "Hanoi Expert" và được mời tham gia beta test các tính năng mới, đồng thời có thể tạo và chia sẻ các mini-guide riêng.
 
 ## Danh sách sơ đồ
 
@@ -26,6 +62,7 @@ Hệ thống được xây dựng trên triết lý "nhập liệu tối thiểu
 - [04 — Deployment & Infrastructure](./04_deployment_infrastructure.md)
 - [05 — API miễn phí cho project](./05_free_apis.md)
 - [06 — Tích hợp Ăn uống & Nhà hàng](./06_dining_integration.md)
+- [07 — Chiến lược giữ chân người dùng](./07_user_retention_strategy.md)
 
 ## Công nghệ sử dụng
 
